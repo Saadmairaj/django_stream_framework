@@ -1,4 +1,4 @@
-This example Django app shows you how you can use Feedly to built a site similar to Pinterest.
+This Django app shows you how you can use Stream Framework to built a site similar to Pinterest.
 Using Stream Framework you can built a wide variety of functionality.
 For instance:
 
