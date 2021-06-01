@@ -24,9 +24,11 @@ def home(request):
 
 
 def login(request):
+    # context = RequestContext(request)
+    # return render_to_response('registration/login.html')
     return auth_views.LoginView.as_view(
         template_name='registration/login.html', 
-        # success_url="/home"
+        success_url="/home"
     )
 
 
@@ -65,7 +67,7 @@ def feed(request):
         feed.delete()
     activities = list(feed[:25])
     if request.REQUEST.get('raise'):
-        raise Exception(activities)
+        raise Exception, activities
     context['feed_pins'] = enrich_activities(activities)
     response = render_to_response('core/feed.html', context)
     return response
@@ -82,7 +84,7 @@ def aggregated_feed(request):
         feed.delete()
     activities = list(feed[:25])
     if request.REQUEST.get('raise'):
-        raise Exception(activities)
+        raise Exception, activities
     context['feed_pins'] = enrich_aggregated_activities(activities)
     response = render_to_response('core/aggregated_feed.html', context)
     return response
