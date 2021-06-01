@@ -1,2 +1,2 @@
-django-toolbelt
+django-toolbelt==0.0.1
 dj-database-url
