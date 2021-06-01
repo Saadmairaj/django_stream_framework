@@ -5,10 +5,7 @@ from core.feed_managers import manager
 from django.views.generic.edit import FormView
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import (
-    authenticate, 
     get_user_model, 
-    login as auth_login, 
-    logout as auth_logout,
     views as auth_views
 )
 from django.contrib.auth.decorators import login_required
@@ -47,10 +44,6 @@ def trending(request):
     '''
     The most popular items
     '''
-    # if not request.user.is_authenticated():
-    #     # hack to log you in automatically for the demo app
-    #     admin_user = authenticate(username='admin', password='admin')
-    #     auth_login(request, admin_user)
 
     context = RequestContext(request)
     
@@ -73,7 +66,7 @@ def trending(request):
     context['form'] = newpost_form
 
     # show a few items
-    popular = Item.objects.all()[:50]
+    popular = Item.objects.all().order_by('-id')[:50]
     context['popular'] = popular
     response = render_to_response('core/trending.html', context)
     return response
