@@ -10,12 +10,13 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
-import urlparse
+from urllib.parse import urlparse
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+location = lambda x: os.path.join(os.path.realpath(BASE_DIR), x)
 
 # on Heroku redis connection parameters come from environment variables
-redis_url = urlparse.urlparse(os.environ.get('REDISTOGO_URL', 'redis://localhost:6379'))
+redis_url = urlparse(os.environ.get('REDISTOGO_URL', 'redis://localhost:6379'))
 
 STREAM_REDIS_CONFIG = {
     'default': {
@@ -86,9 +87,10 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'core',
-    'south',
+    # 'south',
     'djcelery',
     'compressor',
+    'crispy_forms',
 )
 
 STATICFILES_FINDERS = (
@@ -98,7 +100,7 @@ STATICFILES_FINDERS = (
     'compressor.finders.CompressorFinder',
 )
 
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -108,6 +110,23 @@ MIDDLEWARE_CLASSES = (
 )
 
 ROOT_URLCONF = 'core.urls'
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [os.path.join(BASE_DIR, 'templates')]
+        ,
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
@@ -138,6 +157,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
 
 STATIC_URL = '/static/'
+if not DEBUG:
+    STATIC_ROOT = ''
+    STATICFILES_DIRS = [
+        os.path.join(BASE_DIR, 'static/'),
+    ]
 
 LOGGING = {
     'version': 1,
@@ -176,3 +200,6 @@ LOGGING = {
         },
     }
 }
+
+LOGIN_REDIRECT_URL = "/home"
+# CRISPY_TEMPLATE_PACK = 'bootstrap4'

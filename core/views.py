@@ -1,16 +1,42 @@
+import json
 from core import forms
-from core.models import Item
-from django.contrib.auth import authenticate, get_user_model, \
-    login as auth_login
+from core.models import Item, Pin
+from core.feed_managers import manager
+
+from django.contrib.auth import (
+    authenticate, 
+    get_user_model, 
+    login as auth_login, 
+    logout as auth_logout,
+    views as auth_views
+)
+
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template.context import RequestContext
-from core.models import Pin
-from core.feed_managers import manager
-import json
 
 
+
+def home(request):
+    context = RequestContext(request)
+    return render_to_response('core/home.html', context)
+
+
+def login(request):
+    return auth_views.LoginView.as_view(
+        template_name='registration/login.html', 
+        # success_url="/home"
+    )
+
+
+def logout(request):
+    return auth_views.LogoutView.as_view(
+        success_url="/home"
+    )
+
+
+@login_required(login_url='/login/')
 def trending(request):
     '''
     The most popular items
@@ -28,7 +54,7 @@ def trending(request):
     return response
 
 
-@login_required
+@login_required(login_url='/login/')
 def feed(request):
     '''
     Items pinned by the people you follow
@@ -39,13 +65,13 @@ def feed(request):
         feed.delete()
     activities = list(feed[:25])
     if request.REQUEST.get('raise'):
-        raise Exception, activities
+        raise Exception(activities)
     context['feed_pins'] = enrich_activities(activities)
     response = render_to_response('core/feed.html', context)
     return response
 
 
-@login_required
+@login_required(login_url='/login/')
 def aggregated_feed(request):
     '''
     Items pinned by the people you follow
@@ -56,12 +82,13 @@ def aggregated_feed(request):
         feed.delete()
     activities = list(feed[:25])
     if request.REQUEST.get('raise'):
-        raise Exception, activities
+        raise Exception(activities)
     context['feed_pins'] = enrich_aggregated_activities(activities)
     response = render_to_response('core/aggregated_feed.html', context)
     return response
 
 
+@login_required(login_url='/login/')
 def profile(request, username):
     '''
     Shows the users profile
@@ -78,7 +105,7 @@ def profile(request, username):
     return response
 
 
-@login_required
+@login_required(login_url='/login/')
 def pin(request):
     '''
     Simple view to handle (re) pinning an item
@@ -114,7 +141,7 @@ def render_output(output):
     return ajax_response
 
 
-@login_required
+@login_required(login_url='/login/')
 def follow(request):
     '''
     A view to follow other users

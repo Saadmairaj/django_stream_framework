@@ -11,7 +11,7 @@ class BaseModel(models.Model):
 
 
 class Item(BaseModel):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     image = models.ImageField(upload_to='items')
     source_url = models.TextField()
     message = models.TextField(blank=True, null=True)
@@ -22,18 +22,19 @@ class Item(BaseModel):
 
 
 class Board(BaseModel):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     slug = models.SlugField()
 
 
 class Pin(BaseModel):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL)
-    item = models.ForeignKey(Item)
-    board = models.ForeignKey(Board)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    item = models.ForeignKey(Item, on_delete=models.CASCADE)
+    board = models.ForeignKey(Board, on_delete=models.CASCADE)
     influencer = models.ForeignKey(
-        settings.AUTH_USER_MODEL, related_name='influenced_pins')
+        settings.AUTH_USER_MODEL, related_name='influenced_pins',
+        on_delete=models.CASCADE)
     message = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -59,9 +60,11 @@ class Follow(BaseModel):
     the target would be Alex.
     '''
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, related_name='following_set')
+        settings.AUTH_USER_MODEL, related_name='following_set',
+        on_delete=models.CASCADE)
     target = models.ForeignKey(
-        settings.AUTH_USER_MODEL, related_name='follower_set')
+        settings.AUTH_USER_MODEL, related_name='follower_set',
+        on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
 
 
