@@ -1,8 +1,9 @@
 import json
 from core import forms
-from core.models import Item, Pin
+from core.models import Follow, Item, Pin
 from core.feed_managers import manager
-
+from django.views.generic.edit import FormView
+from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import (
     authenticate, 
     get_user_model, 
@@ -10,7 +11,6 @@ from django.contrib.auth import (
     logout as auth_logout,
     views as auth_views
 )
-
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
@@ -24,18 +24,22 @@ def home(request):
 
 
 def login(request):
-    # context = RequestContext(request)
-    # return render_to_response('registration/login.html')
+
     return auth_views.LoginView.as_view(
         template_name='registration/login.html', 
-        success_url="/home"
+        success_url="/home/"
     )
 
 
-def logout(request):
-    return auth_views.LogoutView.as_view(
-        success_url="/home"
-    )
+class RegisterView(FormView):
+    form_class = forms.RegisterForm
+    model = UserCreationForm
+    template_name = 'registration/register.html'
+    success_url = "/login"
+
+    def form_valid(self, form):
+        form.save()
+        return super(RegisterView, self).form_valid(form)
 
 
 @login_required(login_url='/login/')
@@ -43,13 +47,32 @@ def trending(request):
     '''
     The most popular items
     '''
-    if not request.user.is_authenticated():
-        # hack to log you in automatically for the demo app
-        admin_user = authenticate(username='admin', password='admin')
-        auth_login(request, admin_user)
+    # if not request.user.is_authenticated():
+    #     # hack to log you in automatically for the demo app
+    #     admin_user = authenticate(username='admin', password='admin')
+    #     auth_login(request, admin_user)
+
+    context = RequestContext(request)
+    
+    if request.method == 'POST':
+        newpost_form = forms.NewpostForm(request.POST, request.FILES)
+        if newpost_form.is_valid():
+            obj = Item()
+            obj.user = request.user
+            obj.image = newpost_form.cleaned_data['image']
+            obj.message = newpost_form.cleaned_data['message']
+            if 'source_url' in newpost_form.cleaned_data:
+                obj.source_url = newpost_form.cleaned_data['source_url']
+            else:
+                obj.source_url = "www.google.com"
+            obj.save()
+            return HttpResponseRedirect('/')
+    else:
+        newpost_form = forms.NewpostForm()
+
+    context['form'] = newpost_form
 
     # show a few items
-    context = RequestContext(request)
     popular = Item.objects.all()[:50]
     context['popular'] = popular
     response = render_to_response('core/trending.html', context)
@@ -95,13 +118,17 @@ def profile(request, username):
     '''
     Shows the users profile
     '''
-    profile_user = get_user_model().objects.get(username=username)
-    feed = manager.get_user_feed(profile_user.id)
+    context = RequestContext(request)
+    context['profile_user'] = get_user_model().objects.get(username=username)
+
+    # following and followers
+    context['followers'] = Follow.objects.filter(target=context['profile_user'].id).count()
+    context['following'] = Follow.objects.filter(user=context['profile_user']).count()
+
+    feed = manager.get_user_feed(context['profile_user'].id)
     if request.REQUEST.get('delete'):
         feed.delete()
     activities = list(feed[:25])
-    context = RequestContext(request)
-    context['profile_user'] = profile_user
     context['profile_pins'] = enrich_activities(activities)
     response = render_to_response('core/profile.html', context)
     return response
