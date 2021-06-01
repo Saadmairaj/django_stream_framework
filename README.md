@@ -1,22 +1,37 @@
-This Django app shows you how you can use Stream Framework to built a site similar to Pinterest.
-Using Stream Framework you can built a wide variety of functionality.
-For instance:
+# Django Stream Framework Example
 
-- A Facebook style (aggregated) newsfeed
-- A twitter like newsfeed
-- A notification system such as Fashiolista's
-- A pinterest like activity feed
+You can log in to your account or register as a new user if you don't have an account. When you pin items on the trending page, they will appear in the feeds of your followers. There are two feed pages Flat and Aggregated, they both have a different purpose.
 
-But in this example we're showing you how to built a feed with activity from people you follow.
+- The flat Feed page contains all the feeds pinned by your followers.
+- Aggregated Feed page contains group activities from all followers combined.
 
-This project comes with Docker and Docker Compose and you can run the app locally by running:
+Pin a few items and have a look at the Flat and Aggregated feed pages.
 
-`docker-compose up -d`
 
-to test you can head to:
+## Installation
 
-`http://localhost:8000`
+1. git clone docker branch
 
-Or alternatively:
+    ```bash
+    $ git clone -b docker https://github.com/Saadmairaj/django_stream_framework.git
+    ```
 
-[![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy)
+2. Change directory to `django_stream_framework`
+
+    ```bash
+    $ cd django_stream_framework
+    ```
+
+3. Run the following command to run it locally
+
+    ```bash
+    $ docker-compose up -d
+    ```
+    
+    Redis server should also start running with the docker-compose command
+
+  ### Administration credentials:
+  ```
+  user:   admin 
+  pass:   admin
+  ```
