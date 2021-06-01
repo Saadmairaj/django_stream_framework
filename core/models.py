@@ -16,6 +16,7 @@ class Item(BaseModel):
     source_url = models.TextField()
     message = models.TextField(blank=True, null=True)
     pin_count = models.IntegerField(default=0)
+    # date_created = models.DateTimeField(auto_now=True)
 
     # class Meta:
     #    db_table = 'pinterest_example_item'
