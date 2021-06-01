@@ -179,4 +179,5 @@ LOGGING = {
 }
 
 LOGIN_REDIRECT_URL = "/home"
-# CRISPY_TEMPLATE_PACK = 'bootstrap4'
+LOGOUT_REDIRECT_URL = "/home"
+CRISPY_TEMPLATE_PACK = 'bootstrap4'
