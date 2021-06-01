@@ -1,8 +1,10 @@
-from core.models import Follow, Pin
+from core.models import Follow, Item, Pin
 from django import forms
 from core.feed_managers import manager
 from core.models import Board
 from django.template.defaultfilters import slugify
+from django.contrib.auth.models import User
+from django.contrib.auth.forms import UserCreationForm
 
 
 class PinForm(forms.ModelForm):
@@ -62,3 +64,17 @@ class FollowForm(forms.Form):
         follow = Follow.objects.create(user_id=user, target_id=target)
         manager.follow_user(follow.user_id, follow.target_id)
         return follow
+
+
+class RegisterForm(UserCreationForm):
+    class Meta:
+        model = User
+        fields = ('username', 'first_name', 'last_name',
+                  'email', 'password1', 'password2', )
+
+
+class NewpostForm(forms.Form):
+    message = forms.CharField(label='Message', required=True)
+    image = forms.ImageField(label='')
+    # source_url = forms.CharField(label='Source URL', required=False)
+    
