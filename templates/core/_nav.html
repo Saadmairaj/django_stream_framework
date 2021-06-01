@@ -30,10 +30,10 @@
                 Welcome, {% if user.first_name %} {{ user.first_name }} {% else %} 
                 {{ user.username }} {% endif %}
             </a>
-            <a href="/logout" class="nav-item btn btn-dark">Logout</a>
+            <a href="{% url 'logout' %}?next=/home" class="nav-item btn btn-dark">Logout</a>
         {% else %}
             <a class="nav-item btn btn-dark px-4" href="{% url 'login' %}" style="margin-right: 5px;">Login</a>
-            <a class="nav-item btn btn-dark" href="{% url 'logout' %}" role="button">Register</a>
+            <a class="nav-item btn btn-dark" href="{% url 'register' %}" role="button">Register</a>
         {% endif %}
       </div>
     </div>
