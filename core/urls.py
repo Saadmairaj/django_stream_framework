@@ -1,39 +1,45 @@
 from django.conf.urls import patterns, include, url
 
+from django.contrib.auth.views import logout, login
 from django.contrib import admin
 from django.conf import settings
-import django.contrib.auth
+from django.contrib.auth import views as auth_views
+from core import views
 
 admin.autodiscover()
 
-urlpatterns = patterns('',
-                       url(r'^$', 'core.views.trending',
-                           name='trending'),
-                       # the three feed pages
-                       url(r'^feed/$',
-                           'core.views.feed', name='feed'),
-                       url(r'^aggregated_feed/$',
-                           'core.views.aggregated_feed', name='aggregated_feed'),
-                       # a page showing the users profile
-                       url(r'^profile/(?P<username>[\w_-]+)/$',
-                           'core.views.profile', name='profile'),
-                       # backends for follow and pin
-                       url(r'^pin/$',
-                           'core.views.pin', name='pin'),
-                       url(r'^follow/$',
-                           'core.views.follow', name='follow'),
-                       # the admin
-                       url(r'^admin/', include(admin.site.urls)),
-                       url(r'^auth/', include('django.contrib.auth.urls')),
-                       )
+urlpatterns = [
+    # Home page and profile urls
+    url(r'^home/$', views.home, name='home'),
+    url(r'^login/$', login, name='login'),
+    url(r'^register/$', views.RegisterView.as_view(), name='register'),
+    url(r'^logout/$', logout, name='logout'),
+
+    url(r'^$', views.trending, name='trending'),
+
+    # the three feed pages
+    url(r'^feed/$', views.feed, name='feed'),
+    url(r'^aggregated_feed/$', views.aggregated_feed, name='aggregated_feed'),
+
+    # a page showing the users profile
+    url(r'^profile/(?P<username>[\w_-]+)/$', views.profile, name='profile'),
+
+    # backends for follow and pin
+    url(r'^pin/$', views.pin, name='pin'),
+    url(r'^follow/$', views.follow, name='follow'),
+
+    # the admin
+    url(r'^admin/', include(admin.site.urls)),
+    url(r'^auth/', include('django.contrib.auth.urls')),
+]
 
 if settings.DEBUG:
-    urlpatterns = patterns('',
-                           url(r'^media/(?P<path>.*)$', 'django.views.static.serve',
-                               {'document_root': settings.MEDIA_ROOT, 'show_indexes': True}),
-                           url(r'', include(
-                               'django.contrib.staticfiles.urls')),
-                           ) + urlpatterns
+    urlpatterns = [
+        url(r'^media/(?P<path>.*)$', 'django.views.static.serve',
+            {'document_root': settings.MEDIA_ROOT, 'show_indexes': True}),
+        url(r'', include('django.contrib.staticfiles.urls')),
+     ] + urlpatterns
 
+# TODO: move import verb to app when ready method
 # make sure we register verbs when django starts
 from core import verbs

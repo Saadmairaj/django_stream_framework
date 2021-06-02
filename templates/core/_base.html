@@ -21,7 +21,7 @@
 	    {# Tile icon for Win8 (144x144 + tile color) #}
 	    <meta name="msapplication-TileImage" content="{{ MEDIA_URL }}images/favicon-144x144-precomposed.png">
 	    <meta name="msapplication-TileColor" content="#222222">    
-		<link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css" rel="stylesheet">
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 		{% compress css %}
 			<link rel="stylesheet" href="/static/css/style.scss" type="text/x-scss" charset="utf-8">
 		{% endcompress %}
@@ -34,30 +34,15 @@
 		<section>
 			<article>
 				{% block info %}
-					<div class="jumbotron">
-						<div class="container">
-					        <h1>Feedly in action</h1>
-					        <p>
-					        	Welcome to the Pinterest esque example app. We've conveniently logged you in as the admin user.
-							    Also admin is a slightly narcissistic user and follows her own account.
-							    
-							    When you pin items on this trending page, you'll see them appear in the feeds of your followers.
-							    Pin a few items and have a look at the Flat and Aggregated feed pages.
-					        </p>
-					        <p>
-					        	<a class="btn btn-primary btn-lg" href="https://github.com/tschellenbach/Feedly" role="button">
-									<i class="icon-help-circle"></i> Feedly Github
-								</a>
-							</p>
-						</div>
-				    </div>
 				{% endblock %}
-
+				<br>
 				{% block content %}
 				{% endblock content %}
 			</article>
 		</section>
-		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-		<script src="/static/js/bootstrap.min.js"></script>
+
+		<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
 	</body>
 </html>

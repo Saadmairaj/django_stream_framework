@@ -86,9 +86,10 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'core',
-    'south',
+    # 'south',
     'djcelery',
     'compressor',
+    'crispy_forms',
 )
 
 STATICFILES_FINDERS = (
@@ -176,3 +177,7 @@ LOGGING = {
         },
     }
 }
+
+LOGIN_REDIRECT_URL = "/home"
+LOGOUT_REDIRECT_URL = "/home"
+CRISPY_TEMPLATE_PACK = 'bootstrap4'

@@ -1,8 +1,11 @@
 from stream_framework.feed_managers.base import Manager
 from stream_framework.feed_managers.base import FanoutPriority
 from core.models import Follow
-from core.pin_feed import AggregatedPinFeed, PinFeed, \
+from core.pin_feed import (
+    AggregatedPinFeed, 
+    PinFeed,
     UserPinFeed
+)
 
 
 class PinManager(Manager):

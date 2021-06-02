@@ -1,40 +1,40 @@
-<nav class="navbar navbar-default navbar-fixed-top">
-    <div class="container">
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-            <a class="navbar-brand" href="/">Feedly</a>
-        </div>
-        <div class="collapse navbar-collapse">
-            <ul class="nav navbar-nav">
-                <li{% if location == 'trending' %} class="active"{% endif %}>
-                    <a href="{% url 'trending' %}">Trending</a>
-                </li>
-                <li{% if location == 'feed' %} class="active"{% endif %}>
-                    <a href="{% url 'feed' %}"><i class="glyphicon glyphicon-th"></i> Flat Feed</a>
-                </li>
-                <li{% if location == 'aggregated_feed' %} class="active"{% endif %}>
-                    <a href="{% url 'aggregated_feed' %}"><i class="glyphicon glyphicon-th-list"></i> Aggregated Feed</a>
-                </li>
-            {% if user.is_authenticated %}
-                <li class="dropdown{% if location == 'profile' %} active{% endif %}">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                        <i class="glyphicon glyphicon-user"></i>  {{ user.username }}<b class="caret"></b>
-                    </a>
-                    <ul class="dropdown-menu">
-                        <li><a href="{% url 'profile' user.username %}">My Profile</a></li>
-                    </ul>
-                </li>
-            {% endif %}
-                <li>
-                    <a href="https://github.com/tschellenbach/Feedly" target="_blank" role="button">
-                        <i class="glyphicon glyphicon-info-sign"></i> <span class="text-muted">github</span>
-                    </a>
-                </li>
-            </ul>
-        </div>
+<nav class="navbar navbar-expand-lg navbar-light bg-light navbar-fixed-top">
+    <a class="navbar-brand" href="/home" style="color:indianred; font-size:30px;">
+        <img src="https://camo.githubusercontent.com/ceb032d1e04acccbb9734db3805d473b564d98e4ea6cc561983a547e625026b8/687474703a2f2f6476716732646f6767676d6e362e636c6f756466726f6e742e6e65742f696d616765732f67657473747265616d2d646f742d696f2d6c6f676f2d6c696768742e706e67", alt="" width=150/>
+    </a>
+    <button
+      class="navbar-toggler"
+      type="button"
+      data-toggle="collapse"
+      data-target="#navbarNavAltMarkup"
+      aria-controls="navbarNavAltMarkup"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarNavAltMarkup" style="font-size: 15px;">
+      <div class="navbar-nav mr-auto" style="padding-top: 3px;">
+        <a class="nav-item nav-link" href="/home">Home <span class="sr-only">(current)</span></a>
+        {% if user.is_authenticated %}
+            <a class="nav-item nav-link px-4" href="{% url 'trending' %}">Trending</a>
+            <a class="nav-item nav-link px-4" href="{% url 'feed' %}">Flat Feed</a>
+            <a class="nav-item nav-link px-4" href="{% url 'aggregated_feed' %}">Aggregated Feed</a>
+        {% endif %}
+        <a class="nav-item nav-link" href="#">About us</a>
+      </div>
+      <div class="navbar-nav navbar-right">
+        {% if user.is_authenticated %}
+            <a class="nav-item nav-link" href="{% url 'profile' user.username %}" style="margin-right: 5px; padding-top: 7px;">
+                Welcome, {% if user.first_name %} {{ user.first_name }} {% else %} 
+                {{ user.username }} {% endif %}
+            </a>
+            <a href="{% url 'logout' %}?next=/home" class="nav-item btn btn-dark">Logout</a>
+        {% else %}
+            <a class="nav-item btn btn-dark px-4" href="{% url 'login' %}" style="margin-right: 5px;">Login</a>
+            <a class="nav-item btn btn-dark" href="{% url 'register' %}" role="button">Register</a>
+        {% endif %}
+      </div>
     </div>
-</nav>
+  </nav>

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import datetime
+from south.utils import datetime_utils as datetime
 from south.db import db
 from south.v2 import SchemaMigration
 from django.db import models
@@ -8,25 +8,62 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding field 'Item.pin_count'
-        db.add_column(u'core_item', 'pin_count',
-                      self.gf('django.db.models.fields.IntegerField')(
-                          default=0),
-                      keep_default=False)
+        # Adding model 'Item'
+        db.create_table(u'core_item', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
+            ('image', self.gf('django.db.models.fields.files.ImageField')(max_length=100)),
+            ('source_url', self.gf('django.db.models.fields.TextField')()),
+            ('message', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
+            ('pin_count', self.gf('django.db.models.fields.IntegerField')(default=0)),
+        ))
+        db.send_create_signal(u'core', ['Item'])
 
-        # Adding field 'Pin.created_at'
-        db.add_column(u'core_pin', 'created_at',
-                      self.gf('django.db.models.fields.DateTimeField')(
-                          auto_now_add=True, default=datetime.datetime(
-                              2013, 7, 3, 0, 0), blank=True),
-                      keep_default=False)
+        # Adding model 'Board'
+        db.create_table(u'core_board', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
+            ('name', self.gf('django.db.models.fields.CharField')(max_length=255)),
+            ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
+            ('slug', self.gf('django.db.models.fields.SlugField')(max_length=50)),
+        ))
+        db.send_create_signal(u'core', ['Board'])
+
+        # Adding model 'Pin'
+        db.create_table(u'core_pin', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
+            ('item', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['core.Item'])),
+            ('board', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['core.Board'])),
+            ('influencer', self.gf('django.db.models.fields.related.ForeignKey')(related_name='influenced_pins', to=orm['auth.User'])),
+            ('message', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
+            ('created_at', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
+        ))
+        db.send_create_signal(u'core', ['Pin'])
+
+        # Adding model 'Follow'
+        db.create_table(u'core_follow', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('user', self.gf('django.db.models.fields.related.ForeignKey')(related_name='following_set', to=orm['auth.User'])),
+            ('target', self.gf('django.db.models.fields.related.ForeignKey')(related_name='follower_set', to=orm['auth.User'])),
+            ('created_at', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
+        ))
+        db.send_create_signal(u'core', ['Follow'])
+
 
     def backwards(self, orm):
-        # Deleting field 'Item.pin_count'
-        db.delete_column(u'core_item', 'pin_count')
+        # Deleting model 'Item'
+        db.delete_table(u'core_item')
 
-        # Deleting field 'Pin.created_at'
-        db.delete_column(u'core_pin', 'created_at')
+        # Deleting model 'Board'
+        db.delete_table(u'core_board')
+
+        # Deleting model 'Pin'
+        db.delete_table(u'core_pin')
+
+        # Deleting model 'Follow'
+        db.delete_table(u'core_follow')
+
 
     models = {
         u'auth.group': {
@@ -75,7 +112,7 @@ class Migration(SchemaMigration):
         },
         u'core.follow': {
             'Meta': {'object_name': 'Follow'},
-            'deleted_at': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
+            'created_at': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'target': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'follower_set'", 'to': u"orm['auth.User']"}),
             'user': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'following_set'", 'to': u"orm['auth.User']"})

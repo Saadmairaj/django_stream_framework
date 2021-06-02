@@ -1,5 +1,5 @@
 <article class="pin">
-    <figure>
+    <div class="card">
         <div class="pin-image-holder">
             {% if item.image %}
                 <img class="pin-image" src="{{ MEDIA_URL }}{{ item.image }}">
@@ -7,31 +7,36 @@
                 <img class="pin-image" src="{{ MEDIA_URL }}{{ item.item.image }}">
             {% endif %}
         </div>
-        {% if item.message %}
-            <figcaption class="pin-caption">
-                {{ item.message }}
-            </figcaption>
-        {% endif %}
-    </figure>
-    <form class="pin-bottom" method="POST" action="{% url 'pin' %}">
-        <textarea class="form-control" name="message" placeholder="Comment..."></textarea>
-        {% csrf_token %}
-        <div class="media">
-            <div class="pull-left">
-                <input class="btn btn-primary btn-sm" type="submit" value="Pin">
-            </div>
-            <div class="media-body">
-                <div class="input-group input-group-sm">
-                    <span class="input-group-addon text-muted">in</span>
-                    <input class="form-control" name="board_name" placeholder="Board name" type="text" value="My favourite things">
-                </div>
-            </div>
+    
+        <div class="card-body">
+            {% if item.message %}
+                <h5 class="card-title">{{ item.message }}</h5>
+            {% endif %}
         </div>
-        <input name="influencer" type="hidden" value="{{ item.user_id }}">
-        <input name="item" type="hidden" value="{{ item.id }}">
-        <input type="hidden" name="next" value="{{ request.get_full_path }}">
-    </form>
-    <footer class="pin-attribution">
-        by <a href="{% url 'profile' item.user.username %}">{{ item.user }}</a>{% if item.created_at %} {{ item.created_at|timesince }} ago {% endif %}
-    </footer>
+        <div class="card-body">
+            <form method="POST" action="{% url 'pin' %}">
+                <textarea class="form-control" name="message" placeholder="Comment..."></textarea>
+                {% csrf_token %}
+                <div class="media">
+                    <div class="pull-left">
+                        <input class="btn btn-primary btn-sm" type="submit" value="Pin">
+                    </div>
+                    <div class="media-body">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-addon text-muted">in</span>
+                            <input class="form-control" name="board_name" placeholder="Board name" type="text" value="My favourite things">
+                        </div>
+                    </div>
+                </div>
+                <input name="influencer" type="hidden" value="{{ item.user_id }}">
+                <input name="item" type="hidden" value="{{ item.id }}">
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            </form>
+        </div>
+        <div class="card-footer pin-attribution">
+            <small class="text-muted">
+                by <a href="{% url 'profile' item.user.username %}">{{ item.user }}</a>{% if item.created_at %} {{ item.created_at|timesince }} ago {% endif %}
+            </small>
+        </div>
+    </div>
 </article>

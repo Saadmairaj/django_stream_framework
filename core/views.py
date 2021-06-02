@@ -1,34 +1,78 @@
+import json
 from core import forms
-from core.models import Item
-from django.contrib.auth import authenticate, get_user_model, \
-    login as auth_login
+from core.models import Follow, Item, Pin
+from core.feed_managers import manager
+from django.views.generic.edit import FormView
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import (
+    get_user_model, 
+    views as auth_views
+)
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template.context import RequestContext
-from core.models import Pin
-from core.feed_managers import manager
-import json
 
 
+
+def home(request):
+    context = RequestContext(request)
+    return render_to_response('core/home.html', context)
+
+
+def login(request):
+
+    return auth_views.LoginView.as_view(
+        template_name='registration/login.html', 
+        success_url="/home/"
+    )
+
+
+class RegisterView(FormView):
+    form_class = forms.RegisterForm
+    model = UserCreationForm
+    template_name = 'registration/register.html'
+    success_url = "/login"
+
+    def form_valid(self, form):
+        form.save()
+        return super(RegisterView, self).form_valid(form)
+
+
+@login_required(login_url='/login/')
 def trending(request):
     '''
     The most popular items
     '''
-    if not request.user.is_authenticated():
-        # hack to log you in automatically for the demo app
-        admin_user = authenticate(username='admin', password='admin')
-        auth_login(request, admin_user)
+
+    context = RequestContext(request)
+    
+    if request.method == 'POST':
+        newpost_form = forms.NewpostForm(request.POST, request.FILES)
+        if newpost_form.is_valid():
+            obj = Item()
+            obj.user = request.user
+            obj.image = newpost_form.cleaned_data['image']
+            obj.message = newpost_form.cleaned_data['message']
+            if 'source_url' in newpost_form.cleaned_data:
+                obj.source_url = newpost_form.cleaned_data['source_url']
+            else:
+                obj.source_url = "www.google.com"
+            obj.save()
+            return HttpResponseRedirect('/')
+    else:
+        newpost_form = forms.NewpostForm()
+
+    context['form'] = newpost_form
 
     # show a few items
-    context = RequestContext(request)
-    popular = Item.objects.all()[:50]
+    popular = Item.objects.all().order_by('-id')[:50]
     context['popular'] = popular
     response = render_to_response('core/trending.html', context)
     return response
 
 
-@login_required
+@login_required(login_url='/login/')
 def feed(request):
     '''
     Items pinned by the people you follow
@@ -45,7 +89,7 @@ def feed(request):
     return response
 
 
-@login_required
+@login_required(login_url='/login/')
 def aggregated_feed(request):
     '''
     Items pinned by the people you follow
@@ -62,23 +106,28 @@ def aggregated_feed(request):
     return response
 
 
+@login_required(login_url='/login/')
 def profile(request, username):
     '''
     Shows the users profile
     '''
-    profile_user = get_user_model().objects.get(username=username)
-    feed = manager.get_user_feed(profile_user.id)
+    context = RequestContext(request)
+    context['profile_user'] = get_user_model().objects.get(username=username)
+
+    # following and followers
+    context['followers'] = Follow.objects.filter(target=context['profile_user'].id).count()
+    context['following'] = Follow.objects.filter(user=context['profile_user']).count()
+
+    feed = manager.get_user_feed(context['profile_user'].id)
     if request.REQUEST.get('delete'):
         feed.delete()
     activities = list(feed[:25])
-    context = RequestContext(request)
-    context['profile_user'] = profile_user
     context['profile_pins'] = enrich_activities(activities)
     response = render_to_response('core/profile.html', context)
     return response
 
 
-@login_required
+@login_required(login_url='/login/')
 def pin(request):
     '''
     Simple view to handle (re) pinning an item
@@ -114,7 +163,7 @@ def render_output(output):
     return ajax_response
 
 
-@login_required
+@login_required(login_url='/login/')
 def follow(request):
     '''
     A view to follow other users

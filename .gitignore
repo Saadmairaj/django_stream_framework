@@ -10,3 +10,8 @@ pinterest_example/static/CACHE/
 .sass-cache
 .coverage
 .idea
+/venv3.8
+/env3.8
+requirements2.txt
+migrations.org
+db.sqlite3.org

@@ -6,3 +6,8 @@ Dockerfile
 .gitignore
 .git
 .dockerignore
+venv3.8
+env3.8
+requirements2.txt
+migrations.org
+db.sqlite3.org
