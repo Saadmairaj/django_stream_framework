@@ -16,7 +16,11 @@
               <form method="POST" action="{% url 'follow' %}">
                 {% csrf_token %}
                 <input name="target" type="hidden" value="{{ profile_user.id }}">
-                <input class="btn btn-default" type="submit" value="Follow">
+                {% if is_following %}
+                    <input class="btn btn-dark" type="submit" value="Unfollow" name='remove'>
+                {% else %}
+                    <input class="btn btn-dark" type="submit" value="Follow" name='remove'>
+                {% endif %}
             </form>
         </div>
         <div class="col-lg-8">
