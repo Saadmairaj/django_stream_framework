@@ -5,7 +5,7 @@ from core.feed_managers import manager
 from django.views.generic.edit import FormView
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import (
-    get_user_model, 
+    get_user_model,
     views as auth_views
 )
 from django.contrib.auth.decorators import login_required
@@ -14,18 +14,17 @@ from django.shortcuts import render_to_response
 from django.template.context import RequestContext
 
 
-
 def home(request):
     context = RequestContext(request)
     return render_to_response('core/home.html', context)
 
 
 def login(request):
-
+    if request.user.is_authenticated():
+        return HttpResponseRedirect('/')
     return auth_views.LoginView.as_view(
-        template_name='registration/login.html', 
-        success_url="/home/"
-    )
+        template_name='registration/login.html',
+        success_url="/home/")
 
 
 class RegisterView(FormView):
@@ -44,9 +43,8 @@ def trending(request):
     '''
     The most popular items
     '''
-
     context = RequestContext(request)
-    
+
     if request.method == 'POST':
         newpost_form = forms.NewpostForm(request.POST, request.FILES)
         if newpost_form.is_valid():
@@ -115,8 +113,14 @@ def profile(request, username):
     context['profile_user'] = get_user_model().objects.get(username=username)
 
     # following and followers
-    context['followers'] = Follow.objects.filter(target=context['profile_user'].id).count()
-    context['following'] = Follow.objects.filter(user=context['profile_user']).count()
+    followers = Follow.objects.filter(
+        target=context['profile_user'].id)
+    context['followers'] = followers.count()
+    context['following'] = Follow.objects.filter(
+        user=context['profile_user']).count()
+    
+    context['is_following'] = (True 
+        if request.user in [f.user for f in followers] else False)
 
     feed = manager.get_user_feed(context['profile_user'].id)
     if request.REQUEST.get('delete'):
@@ -182,7 +186,7 @@ def follow(request):
             output['errors'] = dict(form.errors.items())
     else:
         form = forms.FollowForm()
-    return HttpResponse(json.dumps(output), content_type='application/json')
+    return HttpResponseRedirect('/profile/' + request.user.username)
 
 
 def enrich_activities(activities):
