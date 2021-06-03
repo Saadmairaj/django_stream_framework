@@ -1,10 +1,13 @@
-from core.models import Follow, Item, Pin
 from django import forms
-from core.feed_managers import manager
-from core.models import Board
 from django.template.defaultfilters import slugify
-from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
+
+# import models
+from django.contrib.auth.models import User
+from core.models import Follow, Pin, Board
+
+# import stream feed manager
+from core.feed_managers import manager
 
 
 class PinForm(forms.ModelForm):
@@ -47,12 +50,12 @@ class PinForm(forms.ModelForm):
 class FollowForm(forms.Form):
     user = forms.IntegerField()
     target = forms.IntegerField()
-    remove = forms.IntegerField(required=False)
+    remove = forms.CharField(required=False)
 
     def save(self):
         user = self.cleaned_data['user']
         target = self.cleaned_data['target']
-        remove = bool(int(self.cleaned_data.get('remove', 0) or 0))
+        remove = True if self.cleaned_data['remove'] == u'Unfollow' else False
 
         if remove:
             follows = Follow.objects.filter(user=user, target=target)
@@ -77,4 +80,3 @@ class NewpostForm(forms.Form):
     message = forms.CharField(label='Message', required=True)
     image = forms.ImageField(label='')
     # source_url = forms.CharField(label='Source URL', required=False)
-    
