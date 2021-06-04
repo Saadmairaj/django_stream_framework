@@ -1,0 +1,45 @@
+{% extends 'core/_base.html' %}
+
+{% block nav %}
+{% include "core/_nav.html" with location='notification_feed' %}
+{% endblock nav %}
+
+{% block content %}
+<br><br>
+{% for notification_activity in feed_pins %}
+    {% for notification in notification_activity.last_activities %}
+        {% with notification.pin as pin %}
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-5">
+                        <div 
+                            {% if notification in unseen_activities %}
+                                class="card text-white bg-warning mb-1 w-100 nounderline"
+                            {% else %}
+                                class="card border-warning mb-1 w-100 nounderline"
+                            {% endif %}> 
+                            <div class="card-body">
+                                {% if pin.message %}
+                                    <small><p class="card-title">{{ pin.message }}</p></small>
+                                {% else %}
+                                    <small><p class="card-title"><i>No message to display</i></p></small>
+                                {% endif %}
+                                <p class="card-text">
+                                    <small 
+                                        {% if notification in unseen_activities %}
+                                            class="pull-right"
+                                        {% else %}
+                                            class="text-muted pull-right"
+                                        {% endif %}>{{ pin.created_at|timesince }} ago <b>by {{ pin.user }}</b>
+                                    </small>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endwith %}
+    {% endfor %}
+{% endfor %}
+
+{% endblock content %}

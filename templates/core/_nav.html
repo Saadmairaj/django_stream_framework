@@ -52,6 +52,24 @@
           href="#">
           About us
         </a>
+
+        <!-- admin options -->
+        {% if request.user.is_superuser %}
+            <a 
+              {% if location == 'notification_feed' %} class="nav-item nav-link px-4 active" {% else %} class="nav-item nav-link px-4" {% endif %} 
+              href="{% url 'notification_feed' %}">
+              ★ {% if unseen_count %}
+                <b>[ {{ unseen_count }} ]</b>
+              {% endif %} Notification Feed
+            </a>
+            <a 
+              {% if location == 'debug' %} class="nav-item nav-link px-4 active" {% else %} class="nav-item nav-link px-4" {% endif %} 
+              href="/admin">
+              ★ debug
+            </a>
+        {% endif %}
+        <!-- admin options -->
+
       </div>
       <div class="navbar-nav navbar-right">
         {% if user.is_authenticated %}
