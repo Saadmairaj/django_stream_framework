@@ -17,6 +17,7 @@ from django.template.context import RequestContext
 
 def home(request):
     context = RequestContext(request)
+    context['unseen_count'] = manager.count_unseen_pins(request.user.id)
     return render_to_response('core/home.html', context)
 
 
@@ -61,7 +62,8 @@ def trending(request):
             return HttpResponseRedirect('/')
     else:
         newpost_form = forms.NewpostForm()
-
+    
+    context['unseen_count'] = manager.count_unseen_pins(request.user.id)
     context['form'] = newpost_form
 
     # show a few items
@@ -80,10 +82,12 @@ def feed(request):
     feed = manager.get_feeds(request.user.id)['normal']
     if request.REQUEST.get('delete'):
         feed.delete()
-    activities = list(feed[:25])
+    activities = list(feed[:])
+    manager.mark_pins_seen(request.user.id, activities)
     if request.REQUEST.get('raise'):
         raise Exception, activities
     context['feed_pins'] = enrich_activities(activities)
+    context['unseen_count'] = manager.count_unseen_pins(request.user.id)
     response = render_to_response('core/feed.html', context)
     return response
 
@@ -101,7 +105,29 @@ def aggregated_feed(request):
     if request.REQUEST.get('raise'):
         raise Exception, activities
     context['feed_pins'] = enrich_aggregated_activities(activities)
+    context['unseen_count'] = manager.count_unseen_pins(request.user.id)
     response = render_to_response('core/aggregated_feed.html', context)
+    return response
+
+
+@login_required(login_url='/login/')
+def notification_feed(request):
+    '''
+    Items pinned notification
+    '''
+    context = RequestContext(request)
+    feed = manager.get_feeds(request.user.id)['notification']
+
+    if request.REQUEST.get('delete'):
+        feed.delete()
+    activities = list(feed[:25])
+    if request.REQUEST.get('raise'):
+        raise Exception, activities
+    context['feed_pins'] = enrich_notification_activities(activities)
+    context['unseen_count'] = manager.count_unseen_pins(request.user.id)
+    context['unseen_activities'] = manager.get_unseen_activities(request.user.id)
+    response = render_to_response('core/notification_feed.html', context)
+    manager.mark_all_pins_seen(request.user.id)
     return response
 
 
@@ -128,6 +154,7 @@ def profile(request, username):
         feed.delete()
     activities = list(feed[:25])
     context['profile_pins'] = enrich_activities(activities)
+    context['unseen_count'] = manager.count_unseen_pins(request.user.id)
     response = render_to_response('core/profile.html', context)
     return response
 
@@ -154,7 +181,6 @@ def pin(request):
 
     else:
         form = forms.PinForm()
-
     return render_output(output)
 
 
@@ -207,6 +233,23 @@ def enrich_activities(activities):
 def enrich_aggregated_activities(aggregated_activities):
     '''
     Load the models attached to these aggregated activities
+    (Normally this would hit a caching layer like memcached or redis)
+    '''
+    pin_ids = []
+    for aggregated_activity in aggregated_activities:
+        for activity in aggregated_activity.activities:
+            pin_ids.append(activity.object_id)
+
+    pin_dict = Pin.objects.in_bulk(pin_ids)
+    for aggregated_activity in aggregated_activities:
+        for activity in aggregated_activity.activities:
+            activity.pin = pin_dict.get(activity.object_id)
+    return aggregated_activities
+
+
+def enrich_notification_activities(aggregated_activities):
+    '''
+    Load the models attached to these notification aggregated activities
     (Normally this would hit a caching layer like memcached or redis)
     '''
     pin_ids = []
