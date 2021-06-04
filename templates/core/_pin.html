@@ -37,6 +37,9 @@
             <small class="text-muted">
                 by <a href="{% url 'profile' item.user.username %}">{{ item.user }}</a>{% if item.created_at %} {{ item.created_at|timesince }} ago {% endif %}
             </small>
+            <small class="text-muted pull-right">
+                {{ item.pin_count }} pins
+            </small>
         </div>
     </div>
 </article>

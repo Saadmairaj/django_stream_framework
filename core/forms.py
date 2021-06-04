@@ -22,12 +22,16 @@ class PinForm(forms.ModelForm):
         board_name = self.cleaned_data['board_name']
         user = self.cleaned_data['user']
         remove = bool(int(self.cleaned_data.get('remove', 0) or 0))
+        item = self.cleaned_data['item']
+
         if remove:
             pins = Pin.objects.filter(
                 user=user, item=self.cleaned_data['item'])
             for pin in pins:
                 manager.remove_pin(pin)
                 pin.delete()
+            item.pin_count -= 1
+            item.save()
             print("Save removed", pin)
             return
 
@@ -39,6 +43,9 @@ class PinForm(forms.ModelForm):
         # save the pin
         pin = forms.ModelForm.save(self, commit=False)
         pin.board = board
+
+        item.pin_count += 1
+        item.save()
         pin.save()
 
         # forward the pin to manager
