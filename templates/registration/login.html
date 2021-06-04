@@ -2,22 +2,34 @@
 {% load crispy_forms_tags %}
 
 {% block content %}
-<div class="container">
-    <div class="row justify-content-center">
-      <div class="col-7">
-        <div style="padding-top: 30px; padding-bottom: 30px;">
-            <h2>Login</h2>
-        </div>
-        <form action="" method="post" class="form-group">
-            {% csrf_token %}
-            <table>
-                {{ form.as_table }}
-            </table>
-            <br>
-            <div class="d-flex justify-content-center">
-                <button type="submit" class="btn btn-success">Login</button>
+<div class="jumbotron" style="background-color: #607a9b; color: #e8e9ee;">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-lg-9">
+                {% include "core/front_base.html" with heading='Login to Stream' %}
             </div>
-        </form>
-      </div>
+            <div class="col-lg-3 border-left" style="padding-left: 70px; font-size: 14px;">
+                <div class="container" style="padding-top: 70px;">
+                    <div class="row justify-content-center">
+                        <div class="col">
+                            <div style="padding-top: 40px; padding-bottom: 30px;">
+                                <!-- <h2>Login</h2> -->
+                            </div>
+                            <form action="" method="post" class="form-group">
+                                {% csrf_token %}
+                                <table>
+                                    {{ form.as_table }}
+                                </table>
+                                <br>
+                                <div class="d-flex justify-content-center">
+                                    <button type="submit" class="btn btn-dark p-3">Login</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
+</div>
 {% endblock %}
