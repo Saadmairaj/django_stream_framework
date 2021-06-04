@@ -1,5 +1,6 @@
 import json
 from core import forms
+from django.contrib.auth.models import User
 from core.models import Follow, Item, Pin
 from core.feed_managers import manager
 from django.views.generic.edit import FormView
@@ -173,12 +174,14 @@ def follow(request):
     A view to follow other users
     '''
     output = {}
+    target = request.user
     if request.method == "POST":
         data = request.POST.copy()
         data['user'] = request.user.id
         form = forms.FollowForm(data=data)
 
         if form.is_valid():
+            target = User.objects.get(pk=form.cleaned_data['target'])
             follow = form.save()
             if follow:
                 output['follow'] = dict(id=follow.id)
@@ -186,7 +189,7 @@ def follow(request):
             output['errors'] = dict(form.errors.items())
     else:
         form = forms.FollowForm()
-    return HttpResponseRedirect('/profile/' + request.user.username)
+    return HttpResponseRedirect('/profile/' + target.username)
 
 
 def enrich_activities(activities):
