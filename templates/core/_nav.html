@@ -4,6 +4,12 @@
       background-color: #607a9bd2;
       color: #e8e9ee !important;
     }
+    .dropdown-menu {
+        width: 400px !important;
+        height: 500px !important;
+        max-height: 500px;
+        overflow: scroll; 
+    }
   </style>
 {% endblock %}
 
@@ -53,20 +59,26 @@
           About us
         </a>
 
-        <!-- admin options -->
-        {% if request.user.is_superuser %}
-            <a 
-              {% if location == 'notification_feed' %} class="nav-item nav-link px-4 active" {% else %} class="nav-item nav-link px-4" {% endif %} 
-              href="{% url 'notification_feed' %}">
-              ★ {% if unseen_count %}
-                <b>[ {{ unseen_count }} ]</b>
-              {% endif %} Notification Feed
-            </a>
-            <a 
-              {% if location == 'debug' %} class="nav-item nav-link px-4 active" {% else %} class="nav-item nav-link px-4" {% endif %} 
-              href="/admin">
-              ★ debug
-            </a>
+        <!-- DEBUG options -->
+        {% if request.user.is_superuser and settings.TEMPLATE_DEBUG %}
+            <div class="dropdown">
+              <a class="nav-item nav-link  dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                ★ debug
+              </a>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenu2">
+                <a 
+                  {% if location == 'notification_feed' %} class="dropdown-item nav-link px-4 active" {% else %} class="dropdown-item nav-link px-4" {% endif %} 
+                  href="{% url 'notification_feed' %}">
+                  ★ {% if unseen_count %}
+                    <b>[ {{ unseen_count }} ]</b>
+                  {% endif %} Notification Feed
+                </a>
+                <a 
+                  class="nav-item nav-link px-4"
+                  href="/admin">★ Admin
+                </a>
+              </div>
+            </div>
         {% endif %}
         <!-- admin options -->
 
@@ -76,9 +88,10 @@
             <a 
               {% if location == 'profile' %} class="nav-item nav-link px-4 active" {% else %} class="nav-item nav-link px-4" {% endif %} 
               href="{% url 'profile' user.username %}" 
-              style="margin-right: 5px; padding-top: 7px;">
+              style="margin-right: 1px; padding-top: 7px;">
               Welcome, {% if user.first_name %} {{ user.first_name }} {% else %} {{ user.username }} {% endif %}
             </a>
+            {% include "core/notification_dropdown.html" %}
             <a href="{% url 'logout' %}?next=/home" class="nav-item btn btn-dark">Logout</a>
         {% else %}
             <a 
