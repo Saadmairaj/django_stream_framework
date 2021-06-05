@@ -16,10 +16,10 @@ Pin a few items and have a look at the Flat and Aggregated feed pages.
 
 ## Installation
 
-1. git clone docker branch
+1. git clone the repo
 
     ```bash
-    $ git clone -b docker https://github.com/Saadmairaj/django_stream_framework.git
+    $ git clone https://github.com/Saadmairaj/django_stream_framework.git
     ```
 
 2. Change directory to `django_stream_framework`
@@ -37,6 +37,7 @@ Pin a few items and have a look at the Flat and Aggregated feed pages.
     Redis server should also start running with the docker-compose command
 
   ### Administration credentials:
+  
   ```
   user:   admin 
   pass:   admin
