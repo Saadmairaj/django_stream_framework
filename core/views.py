@@ -11,14 +11,30 @@ from django.contrib.auth import (
 )
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response as rtr
 from django.template.context import RequestContext
+from django.conf import settings
+
+
+def render_to_response(*args, **kwargs):
+    request = kwargs.pop('request', None)
+    context = [i for i in args if isinstance(i, RequestContext)][0]
+    if request is not None and context:
+        args = list(args)
+        context_in = args.index(context)
+        args[context_in]['notification_pins'] = enrich_notification_activities(
+            manager.get_user_activities(request.user.id, 'notification')[:])
+        args[context_in]['unseen_count'] = manager.count_unseen_pins(
+            request.user.id)
+        args[context_in]['unseen_activities'] = manager.get_unseen_activities(
+            request.user.id)
+        args[context_in]['settings'] = settings
+    return rtr(*args, **kwargs)
 
 
 def home(request):
     context = RequestContext(request)
-    context['unseen_count'] = manager.count_unseen_pins(request.user.id)
-    return render_to_response('core/home.html', context)
+    return render_to_response('core/home.html', context, request=request)
 
 
 def login(request):
@@ -62,14 +78,13 @@ def trending(request):
             return HttpResponseRedirect('/')
     else:
         newpost_form = forms.NewpostForm()
-    
-    context['unseen_count'] = manager.count_unseen_pins(request.user.id)
     context['form'] = newpost_form
 
     # show a few items
     popular = Item.objects.all().order_by('-id')[:50]
     context['popular'] = popular
-    response = render_to_response('core/trending.html', context)
+    response = render_to_response(
+        'core/trending.html', context, request=request)
     return response
 
 
@@ -87,8 +102,7 @@ def feed(request):
     if request.REQUEST.get('raise'):
         raise Exception, activities
     context['feed_pins'] = enrich_activities(activities)
-    context['unseen_count'] = manager.count_unseen_pins(request.user.id)
-    response = render_to_response('core/feed.html', context)
+    response = render_to_response('core/feed.html', context, request=request)
     return response
 
 
@@ -105,8 +119,8 @@ def aggregated_feed(request):
     if request.REQUEST.get('raise'):
         raise Exception, activities
     context['feed_pins'] = enrich_aggregated_activities(activities)
-    context['unseen_count'] = manager.count_unseen_pins(request.user.id)
-    response = render_to_response('core/aggregated_feed.html', context)
+    response = render_to_response(
+        'core/aggregated_feed.html', context, request=request)
     return response
 
 
@@ -117,18 +131,22 @@ def notification_feed(request):
     '''
     context = RequestContext(request)
     feed = manager.get_feeds(request.user.id)['notification']
-
     if request.REQUEST.get('delete'):
         feed.delete()
     activities = list(feed[:25])
     if request.REQUEST.get('raise'):
         raise Exception, activities
     context['feed_pins'] = enrich_notification_activities(activities)
-    context['unseen_count'] = manager.count_unseen_pins(request.user.id)
-    context['unseen_activities'] = manager.get_unseen_activities(request.user.id)
-    response = render_to_response('core/notification_feed.html', context)
+    response = render_to_response(
+        'core/notification_feed.html', context, request=request)
     manager.mark_all_pins_seen(request.user.id)
     return response
+
+
+@login_required(login_url='/login/')
+def api_notification_seen(request):
+    manager.mark_all_pins_seen(request.user.id)
+    return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
 
 
 @login_required(login_url='/login/')
@@ -145,17 +163,17 @@ def profile(request, username):
     context['followers'] = followers.count()
     context['following'] = Follow.objects.filter(
         user=context['profile_user']).count()
-    
-    context['is_following'] = (True 
-        if request.user in [f.user for f in followers] else False)
+
+    context['is_following'] = (True
+                               if request.user in [f.user for f in followers] else False)
 
     feed = manager.get_user_feed(context['profile_user'].id)
     if request.REQUEST.get('delete'):
         feed.delete()
     activities = list(feed[:25])
     context['profile_pins'] = enrich_activities(activities)
-    context['unseen_count'] = manager.count_unseen_pins(request.user.id)
-    response = render_to_response('core/profile.html', context)
+    response = render_to_response(
+        'core/profile.html', context, request=request)
     return response
 
 
