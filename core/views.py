@@ -1,31 +1,48 @@
 import json
 from core import forms
+from django.contrib.auth.models import User
 from core.models import Follow, Item, Pin
 from core.feed_managers import manager
 from django.views.generic.edit import FormView
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import (
-    get_user_model, 
+    get_user_model,
     views as auth_views
 )
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response as rtr
 from django.template.context import RequestContext
+from django.conf import settings
 
+
+def render_to_response(*args, **kwargs):
+    request = kwargs.pop('request', None)
+    context = [i for i in args if isinstance(i, RequestContext)][0]
+    if request is not None and context:
+        args = list(args)
+        context_in = args.index(context)
+        args[context_in]['notification_pins'] = enrich_notification_activities(
+            manager.get_user_activities(request.user.id, 'notification')[:])
+        args[context_in]['unseen_count'] = manager.count_unseen_pins(
+            request.user.id)
+        args[context_in]['unseen_activities'] = manager.get_unseen_activities(
+            request.user.id)
+        args[context_in]['settings'] = settings
+    return rtr(*args, **kwargs)
 
 
 def home(request):
     context = RequestContext(request)
-    return render_to_response('core/home.html', context)
+    return render_to_response('core/home.html', context, request=request)
 
 
 def login(request):
-
+    if request.user.is_authenticated():
+        return HttpResponseRedirect('/')
     return auth_views.LoginView.as_view(
-        template_name='registration/login.html', 
-        success_url="/home/"
-    )
+        template_name='registration/login.html',
+        success_url="/home/")
 
 
 class RegisterView(FormView):
@@ -44,9 +61,8 @@ def trending(request):
     '''
     The most popular items
     '''
-
     context = RequestContext(request)
-    
+
     if request.method == 'POST':
         newpost_form = forms.NewpostForm(request.POST, request.FILES)
         if newpost_form.is_valid():
@@ -62,13 +78,13 @@ def trending(request):
             return HttpResponseRedirect('/')
     else:
         newpost_form = forms.NewpostForm()
-
     context['form'] = newpost_form
 
     # show a few items
     popular = Item.objects.all().order_by('-id')[:50]
     context['popular'] = popular
-    response = render_to_response('core/trending.html', context)
+    response = render_to_response(
+        'core/trending.html', context, request=request)
     return response
 
 
@@ -81,11 +97,12 @@ def feed(request):
     feed = manager.get_feeds(request.user.id)['normal']
     if request.REQUEST.get('delete'):
         feed.delete()
-    activities = list(feed[:25])
+    activities = list(feed[:])
+    manager.mark_pins_seen(request.user.id, activities)
     if request.REQUEST.get('raise'):
         raise Exception, activities
     context['feed_pins'] = enrich_activities(activities)
-    response = render_to_response('core/feed.html', context)
+    response = render_to_response('core/feed.html', context, request=request)
     return response
 
 
@@ -102,8 +119,34 @@ def aggregated_feed(request):
     if request.REQUEST.get('raise'):
         raise Exception, activities
     context['feed_pins'] = enrich_aggregated_activities(activities)
-    response = render_to_response('core/aggregated_feed.html', context)
+    response = render_to_response(
+        'core/aggregated_feed.html', context, request=request)
     return response
+
+
+@login_required(login_url='/login/')
+def notification_feed(request):
+    '''
+    Items pinned notification
+    '''
+    context = RequestContext(request)
+    feed = manager.get_feeds(request.user.id)['notification']
+    if request.REQUEST.get('delete'):
+        feed.delete()
+    activities = list(feed[:25])
+    if request.REQUEST.get('raise'):
+        raise Exception, activities
+    context['feed_pins'] = enrich_notification_activities(activities)
+    response = render_to_response(
+        'core/notification_feed.html', context, request=request)
+    manager.mark_all_pins_seen(request.user.id)
+    return response
+
+
+@login_required(login_url='/login/')
+def api_notification_seen(request):
+    manager.mark_all_pins_seen(request.user.id)
+    return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
 
 
 @login_required(login_url='/login/')
@@ -115,15 +158,22 @@ def profile(request, username):
     context['profile_user'] = get_user_model().objects.get(username=username)
 
     # following and followers
-    context['followers'] = Follow.objects.filter(target=context['profile_user'].id).count()
-    context['following'] = Follow.objects.filter(user=context['profile_user']).count()
+    followers = Follow.objects.filter(
+        target=context['profile_user'].id)
+    context['followers'] = followers.count()
+    context['following'] = Follow.objects.filter(
+        user=context['profile_user']).count()
+
+    context['is_following'] = (True
+                               if request.user in [f.user for f in followers] else False)
 
     feed = manager.get_user_feed(context['profile_user'].id)
     if request.REQUEST.get('delete'):
         feed.delete()
     activities = list(feed[:25])
     context['profile_pins'] = enrich_activities(activities)
-    response = render_to_response('core/profile.html', context)
+    response = render_to_response(
+        'core/profile.html', context, request=request)
     return response
 
 
@@ -149,7 +199,6 @@ def pin(request):
 
     else:
         form = forms.PinForm()
-
     return render_output(output)
 
 
@@ -169,12 +218,14 @@ def follow(request):
     A view to follow other users
     '''
     output = {}
+    target = request.user
     if request.method == "POST":
         data = request.POST.copy()
         data['user'] = request.user.id
         form = forms.FollowForm(data=data)
 
         if form.is_valid():
+            target = User.objects.get(pk=form.cleaned_data['target'])
             follow = form.save()
             if follow:
                 output['follow'] = dict(id=follow.id)
@@ -182,7 +233,7 @@ def follow(request):
             output['errors'] = dict(form.errors.items())
     else:
         form = forms.FollowForm()
-    return HttpResponse(json.dumps(output), content_type='application/json')
+    return HttpResponseRedirect('/profile/' + target.username)
 
 
 def enrich_activities(activities):
@@ -200,6 +251,23 @@ def enrich_activities(activities):
 def enrich_aggregated_activities(aggregated_activities):
     '''
     Load the models attached to these aggregated activities
+    (Normally this would hit a caching layer like memcached or redis)
+    '''
+    pin_ids = []
+    for aggregated_activity in aggregated_activities:
+        for activity in aggregated_activity.activities:
+            pin_ids.append(activity.object_id)
+
+    pin_dict = Pin.objects.in_bulk(pin_ids)
+    for aggregated_activity in aggregated_activities:
+        for activity in aggregated_activity.activities:
+            activity.pin = pin_dict.get(activity.object_id)
+    return aggregated_activities
+
+
+def enrich_notification_activities(aggregated_activities):
+    '''
+    Load the models attached to these notification aggregated activities
     (Normally this would hit a caching layer like memcached or redis)
     '''
     pin_ids = []

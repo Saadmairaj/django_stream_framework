@@ -21,6 +21,9 @@ urlpatterns = [
     url(r'^feed/$', views.feed, name='feed'),
     url(r'^aggregated_feed/$', views.aggregated_feed, name='aggregated_feed'),
 
+    # admin access required
+    url(r'^notification_feed/$', views.notification_feed, name='notification_feed'),
+
     # a page showing the users profile
     url(r'^profile/(?P<username>[\w_-]+)/$', views.profile, name='profile'),
 
@@ -29,8 +32,11 @@ urlpatterns = [
     url(r'^follow/$', views.follow, name='follow'),
 
     # the admin
-    url(r'^admin/', include(admin.site.urls)),
+    url(r'^admin/', include(admin.site.urls), name='admin'),
     url(r'^auth/', include('django.contrib.auth.urls')),
+
+    # python function calls
+    url(r'^seen_notification/$', views.api_notification_seen, name="seen_notification")
 ]
 
 if settings.DEBUG:
