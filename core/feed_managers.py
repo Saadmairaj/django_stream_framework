@@ -2,7 +2,7 @@ from stream_framework.feed_managers.base import Manager
 from stream_framework.feed_managers.base import FanoutPriority
 from core.models import Follow
 from core.pin_feed import (
-    AggregatedPinFeed, 
+    AggregatedPinFeed,
     PinFeed,
     UserPinFeed,
     NotificationPinFeed
@@ -30,17 +30,26 @@ class PinManager(Manager):
         self.remove_user_activity(pin.user_id, activity)
 
     def get_user_follower_ids(self, user_id):
-        ids = Follow.objects.filter(target=user_id).values_list('user_id', flat=True)
+        ids = Follow.objects.filter(
+            target=user_id).values_list('user_id', flat=True)
         return {FanoutPriority.HIGH: ids}
-    
+
     def mark_pins_seen(self, user_id, activity_ids):
         if not isinstance(activity_ids, (tuple, list)):
             activity_ids = [activity_ids]
         notification_obj = self.feed_classes['notification'](user_id)
         notification_obj.mark_activities(activity_ids)
-    
+
     def mark_all_pins_seen(self, user_id):
         self.feed_classes['notification'](user_id).mark_all()
+
+    def count_unseen_pins(self, user_id):
+        return self.feed_classes['notification'](
+            user_id).count_unseen()
+
+    def count_unread_pins(self, user_id):
+        return self.feed_classes['notification'](
+            user_id).count_unread()
 
     def get_unseen_activities(self, user_id):
         activities = []
@@ -50,13 +59,8 @@ class PinManager(Manager):
             activities.extend(notification.last_activities)
         return activities
 
-    def count_unseen_pins(self, user_id):
-        return self.feed_classes['notification'](
-            user_id).count_unseen()
-
-    def count_unread_pins(self, user_id):
-        return self.feed_classes['notification'](
-            user_id).count_unread()
+    def get_user_activities(self, user_id, key):
+        return self.get_feeds(user_id)[key]
 
 
 manager = PinManager()
