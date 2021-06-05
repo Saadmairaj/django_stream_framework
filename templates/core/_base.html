@@ -29,19 +29,17 @@
 		{% block customstyle %}
 		{% endblock %}
 	</head>
-	<body>
+	<body style="background-color:#607a9b;">
 		{% block nav %}
 			{% include "core/_nav.html" with location='trending' %}
 		{% endblock nav %}
 		<section>
 			<article>
-				<div class="containter" style="background-color: #607a9b; color: #e8e9ee;">
-					{% block info %}
-					{% endblock %}
-					<br>
-					{% block content %}
-					{% endblock content %}
-				</div>
+				{% block info %}
+				{% endblock %}
+				<br>
+				{% block content %}
+				{% endblock content %}
 			</article>
 		</section>
 
