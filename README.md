@@ -8,6 +8,12 @@ You can log in to your account or register as a new user if you don't have an ac
 Pin a few items and have a look at the Flat and Aggregated feed pages.
 
 
+<p align="center">
+    <img width="800" alt="Screenshot 2021-06-05 at 21 46 17" src="https://user-images.githubusercontent.com/46227224/120898254-a9485680-c647-11eb-8044-53e913cb6c8f.png">
+    <img width="800" alt="Screenshot 2021-06-05 at 21 46 37" src="https://user-images.githubusercontent.com/46227224/120898259-b1a09180-c647-11eb-9d75-2ba9aebf7f01.png">
+</p>
+
+
 ## Installation
 
 1. git clone docker branch
