@@ -34,6 +34,9 @@ urlpatterns = [
     # the admin
     url(r'^admin/', include(admin.site.urls), name='admin'),
     url(r'^auth/', include('django.contrib.auth.urls')),
+
+    # python function calls
+    url(r'^seen_notification/$', views.api_notification_seen, name="seen_notification")
 ]
 
 if settings.DEBUG:
